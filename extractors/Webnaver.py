@@ -1,40 +1,56 @@
 from requests import get
 from bs4 import BeautifulSoup
 import pandas as pd
-from extractors.eliminate import my_eliminate
+from eliminate import my_eliminate #추출한 text중 불필요한 요소를 제거하기위한 만든 모듈
+import math #페이지 수 계산을 위한 모듈
 
-def extract_Web_naver(keyword):
+def page_count(keyword):
     base_url = "https://ad.search.naver.com/search.naver?"
-    search_page = "1"
-
-    response = get(f"{base_url}query={keyword}&pagingIndex={search_page}")
+    response = get(f"{base_url}query={keyword}&pagingIndex=1")
 
     if response.status_code != 200:
         print("Can't request Web search naver")
     else:
-        results = []
         soup = BeautifulSoup(response.text, "html.parser")
-        inner = soup.find_all('div', class_ = "inner") 
-        del inner[0] #첫번째 리스트는 검색결과에 관한 값이므로 지워준다.
-        for inner_list in inner:
-            title = inner_list.find_all('span',class_ = "lnk_tit")
-            bnk = 'empty'
-            title_1 = title[0].text #노출되는 제목이 최대 3개. 1개 또는 2개일 경우 다른것으로 채워야함. 
-            title_2 = bnk if len(title) == 1 else title[1].text
-            title_3 = bnk if len(title) != 3 else title[2].text
-            ad_url = inner_list.find('a', class_ = "url").string #url 가져오기, 경로가 명확해서 string 사용
-            event = inner_list.find_all('p', class_ = "ad_dsc")
-            ad_promo = bnk if len(event) == 1 else event[0].text
-            ad_desc = event[0].text if len(event) == 1 else event[1].text
-            ad_period = inner_list.find('em', class_="txt").text
-            search_data = {
-                'title1' : my_eliminate(title_1),   #줄바꿈, 공백, 쉼표, 탭과 같은 파일변환시 문제되는 문자열 삭제함수
-                'title2' : my_eliminate(title_2),
-                'title3' : my_eliminate(title_3),
-                'ad_url' : ad_url,
-                'ad_event' : my_eliminate(ad_promo),
-                'ad_desc' : my_eliminate(ad_desc),
-                'ad_period': my_eliminate(ad_period)
-            }
-            results.append(search_data)
-        return results
+        inner = soup.find_all('div', class_ = "inner")[0]
+        total_search = inner.find('span', class_="num_result").text
+        total = total_search.split('/')[1].strip("건")
+        page_count = math.ceil(int(total)/25)
+        return page_count
+
+def extract_Web_naver(keyword):
+    search_page = page_count(keyword)
+    for page in range(1, search_page + 1):
+        base_url = "https://ad.search.naver.com/search.naver?"
+
+        response = get(f"{base_url}query={keyword}&pagingIndex={page}")
+
+        if response.status_code != 200:
+            print("Can't request Web search naver")
+        else:
+            results = []
+            soup = BeautifulSoup(response.text, "html.parser")
+            inner = soup.find_all('div', class_ = "inner") 
+            del inner[0] #첫번째 리스트는 검색결과에 관한 값이므로 지워준다.
+            for inner_list in inner:
+                title = inner_list.find_all('span',class_ = "lnk_tit")
+                bnk = 'empty'
+                title_1 = title[0].text #노출되는 제목이 최대 3개. 1개 또는 2개일 경우 다른것으로 채워야함. 
+                title_2 = bnk if len(title) == 1 else title[1].text
+                title_3 = bnk if len(title) != 3 else title[2].text
+                ad_url = inner_list.find('a', class_ = "url").string #url 가져오기, 경로가 명확해서 string 사용
+                event = inner_list.find_all('p', class_ = "ad_dsc")
+                ad_promo = bnk if len(event) == 1 else event[0].text
+                ad_desc = event[0].text if len(event) == 1 else event[1].text
+                ad_period = inner_list.find('em', class_="txt").text
+                search_data = {
+                    'title1' : my_eliminate(title_1),   #줄바꿈, 공백, 쉼표, 탭과 같은 파일변환시 문제되는 문자열 삭제함수
+                    'title2' : my_eliminate(title_2),
+                    'title3' : my_eliminate(title_3),
+                    'ad_url' : ad_url,
+                    'ad_event' : my_eliminate(ad_promo),
+                    'ad_desc' : my_eliminate(ad_desc),
+                    'ad_period': my_eliminate(ad_period)
+                }
+                results.append(search_data)
+            return results
