@@ -1,8 +1,8 @@
 from requests import get
 from bs4 import BeautifulSoup
 import pandas as pd
-from eliminate import my_eliminate #추출한 text중 불필요한 요소를 제거하기위한 만든 모듈
-import math #페이지 수 계산을 위한 모듈
+from eliminate import my_eliminate
+import math
 
 def page_count(keyword):
     base_url = "https://ad.search.naver.com/search.naver?"
@@ -19,6 +19,7 @@ def page_count(keyword):
         return page_count
 
 def extract_Web_naver(keyword):
+    results = []
     search_page = page_count(keyword)
     for page in range(1, search_page + 1):
         base_url = "https://ad.search.naver.com/search.naver?"
@@ -28,7 +29,6 @@ def extract_Web_naver(keyword):
         if response.status_code != 200:
             print("Can't request Web search naver")
         else:
-            results = []
             soup = BeautifulSoup(response.text, "html.parser")
             inner = soup.find_all('div', class_ = "inner") 
             del inner[0] #첫번째 리스트는 검색결과에 관한 값이므로 지워준다.
@@ -53,4 +53,4 @@ def extract_Web_naver(keyword):
                     'ad_period': my_eliminate(ad_period)
                 }
                 results.append(search_data)
-            return results
+    return results
