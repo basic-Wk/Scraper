@@ -4,7 +4,7 @@ import pandas as pd
 from eliminate import my_eliminate
 import math
 
-def page_count(keyword):
+def total_search_count(keyword):
     base_url = "https://ad.search.naver.com/search.naver?"
     response = get(f"{base_url}query={keyword}&pagingIndex=1")
 
@@ -15,8 +15,12 @@ def page_count(keyword):
         inner = soup.find_all('div', class_ = "inner")[0]
         total_search = inner.find('span', class_="num_result").text
         total = total_search.split('/')[1].strip("건")
-        page_count = math.ceil(int(total)/25)
-        return page_count
+        search_count = int(total)
+        return search_count
+
+def page_count(keyword):
+    page_count = math.ceil(total_search_count(keyword)/25)
+    return page_count
 
 def extract_Web_naver(keyword):
     results = []

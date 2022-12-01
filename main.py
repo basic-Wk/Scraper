@@ -1,8 +1,10 @@
-from Webnaver import extract_Web_naver
+from Webnaver import extract_Web_naver,total_search_count
 
-aaaa = "장기렌트"
-naver = extract_Web_naver(aaaa)
-file = open(f"search_{aaaa}_Web_naver.csv", "w", encoding="utf-8-sig")
+keyword = "장기렌트"
+naver = extract_Web_naver(keyword)
+count = total_search_count(keyword)
+print("총 검색건수는", count, "건 입니다.")
+file = open(f"search_{keyword}_Web_naver.csv", "w", encoding="utf-8-sig")
 file.write("title1, title2, title3, ad_url, ad_event, ad_desc, ad_period\n")
 
 for resultfile in naver:
