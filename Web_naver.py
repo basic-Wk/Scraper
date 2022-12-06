@@ -1,10 +1,9 @@
 from requests import get
 from bs4 import BeautifulSoup
-import pandas as pd
 from eliminate import my_eliminate
 import math
 
-def total_search_count(keyword):
+def total_Web_search_count(keyword):
     base_url = "https://ad.search.naver.com/search.naver?"
     response = get(f"{base_url}query={keyword}&pagingIndex=1")
 
@@ -19,7 +18,7 @@ def total_search_count(keyword):
         return search_count
 
 def page_count(keyword):
-    page_count = math.ceil(total_search_count(keyword)/25)
+    page_count = math.ceil(total_Web_search_count(keyword)/25)
     return page_count
 
 def extract_Web_naver(keyword):
